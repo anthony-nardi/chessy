@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Multiplayer Real Time Chess</title>
+    <style>
+        #player_list {
+          padding:20px;
+        }
+        #player_list div {
+          cursor: pointer;
+          font-size: 125%;
+        }
+        #player_list div:hover {
+          background: yellow;
+        }
+    </style>
+    <script src="//localhost:35729/livereload.js"></script>
+    <script src="js/bundle.js"></script>
+    <script src="https://cdn.socket.io/socket.io-1.3.5.js"></script>
+    <script>
+      
+      var myName,
+          playerList;
+
+      function updatePlayerList (players) {
+        playerList = players;
+        var listElement = document.getElementById('player_list');
+        listElement.innerHTML = '<h2>Challenge Player</h2>';
+        for (var i = 0; i < players.length; i++) {
+          if (myName !== players[i]) {
+            var currentPlayerElement = document.createElement('div');
+            currentPlayerElement.innerHTML = players[i];
+            listElement.appendChild(currentPlayerElement);
+          }
+        }
+      }
+
+      window.addEventListener('DOMContentLoaded', function () {
+        var socket = io('http://localhost');
+        socket.on('players', function (players) {
+          updatePlayerList(players);
+        });
+        socket.on('challengeRequested', function (player) {
+          console.log('New Challenge From ' + player);
+          if (confirm('New challenger ' + player)) {
+            socket.emit('startgame', player);
+          }
+        });
+        socket.on('newgame', function (color) {
+          document.getElementById('dimmer').style.display = 'none';
+          document.getElementById('name_form').style.display = 'none';
+          document.getElementById('player_list').style.display = 'none';
+          window.initChessBoard(color);
+          window.emitMove = function (move) {
+            console.log('send move to other player...');
+            socket.emit('makeMove', move);
+          };
+          socket.on('makeMove', function (move) {
+            console.log('move made by other player ', move);
+            window.NOTATION_MAP[move.fromSquare].piece         = {
+              'type'  : '',
+              'color' : '',
+              'prefix': ''
+            };
+            window.NOTATION_MAP[move.targetSquare].piece = move.movingPiece;
+            if (window.chessEngine.turn() === move.color) {
+              window.chessEngine.move(move.move);
+            } else {
+              window.chessEngine.swap_color();
+              window.chessEngine.move(move.move);
+              window.chessEngine.swap_color();
+            }
+            window.updateBoard();
+          });
+        });
+        document.getElementById('player_list').addEventListener('click', function (e) {
+          var playerClicked = e.srcElement.innerHTML;
+          if (playerList.indexOf(playerClicked) !== -1) {
+            socket.emit('challengePlayer', playerClicked);
+          }
+        });
+        document.getElementById('send_player_name').addEventListener('click', function () {
+          myName = document.getElementById('player_name').value;
+          socket.emit('setPlayerName', myName);
+          document.getElementById('name_form').style.display = 'none';
+          document.getElementById('player_list').style.display = 'block';
+        });
+      });
+    </script>
+  </head>
+  <body>
+    <div id="dimmer" style="position:absolute;width:100%;height:100%;background:black;opacity:0.7;"></div>
+    <div id="name_form" style="position:absolute;width:200px;height:200px;left:calc(50% - 100px);top:calc(45% - 100px);background:white;text-align:center;">
+      <h2>Enter your name</h2>
+      <input id="player_name" type="text"/>
+      <button id="send_player_name" style="margin-top:50px;">Start</button>
+    </div>
+    <div id="player_list" style="display:none;position:absolute;width:200px;height:200px;left:calc(50% - 100px);top:calc(45% - 100px);background:white;text-align:center;">
+      <h2>Challenge Player</h2>
+    </div>
+  </body>
+</html>
