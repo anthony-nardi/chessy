@@ -36,7 +36,7 @@
       }
 
       window.addEventListener('DOMContentLoaded', function () {
-        var socket = io('http://localhost');
+        var socket = io('/');
         socket.on('players', function (players) {
           updatePlayerList(players);
         });
