@@ -241,6 +241,48 @@ window.addEventListener('DOMContentLoaded', function () {
 
   }
 
+  function showMovesWhileMoving (squareClicked) {
+
+    var canvas             = display.canvas,
+        ctx                = display.ctx,
+        squareWidth        = canvas.width / NUMBER_OF_COLS,
+        squareHeight       = canvas.height / NUMBER_OF_ROWS,
+        moves              = chessEngine.moves({square: squareClicked.id}),
+        startingSquare     = [squareClicked.colIndex, squareClicked.rowIndex],
+        destinationSquares = [],
+        currentMove;
+
+    for (var i = 0; i < moves.length; i++) {
+      moves[i] = moves[i].replace('+', '');
+      moves[i] = moves[i].replace('#', '');
+      if (moves[i].length > 2) {
+        currentMove = moves[i].slice(-2);
+      } else {
+        currentMove = moves[i];
+      }
+      destinationSquares.push([NOTATION_MAP[currentMove].colIndex, NOTATION_MAP[currentMove].rowIndex]);
+    }
+
+    ctx.lineWidth = 10;
+    ctx.beginPath();
+    ctx.moveTo(startingSquare[0] * squareWidth + squareWidth / 2, startingSquare[1] * squareHeight + squareHeight / 2);
+    
+    for (var i = 0; i < destinationSquares.length; i++) {
+      ctx.lineTo(destinationSquares[i][0] * squareWidth  + squareWidth / 2, destinationSquares[i][1] * squareHeight + squareHeight / 2);
+      ctx.stroke();
+      ctx.moveTo(startingSquare[0] * squareWidth + squareWidth / 2, startingSquare[1] * squareHeight + squareHeight / 2);
+      ctx.closePath();
+    }
+
+    for (var i = 0; i < destinationSquares.length; i++) {
+      ctx.beginPath();
+      ctx.arc(destinationSquares[i][0] * squareWidth  + squareWidth / 2, destinationSquares[i][1] * squareHeight + squareHeight / 2, 33, 0, 2 * Math.PI, false);
+      ctx.stroke();
+      ctx.closePath();
+    }
+
+  }
+
   function showMoves (e) {
 
     // If mousedown, dont show moves?  Nah, show moves for currently selected piece...
@@ -345,21 +387,23 @@ window.addEventListener('DOMContentLoaded', function () {
     return chessEngine.moves({square: square.id});
   }
 
-  function isValidMove (square, piece) {
+  function isValidMove (toSquare, piece, fromSquare) {
     
-    console.log('is move ' + (piece.prefix + square.id) + ' in ', availableMoves[piece.color]);
+    console.log('is move ' + (piece.prefix + toSquare.id) + ' in ', availableMoves[piece.color]);
   
-    var isCapture = square.piece.type && square.piece.color !== chessEngine.turn() ? 'x' : '';
+    var validMovesForPiece = chessEngine.moves({'square': fromSquare.id});
 
-    if (availableMoves[piece.color].indexOf(piece.prefix + isCapture + square.id) !== -1) {
+    var isCapture = toSquare.piece.type && toSquare.piece.color !== chessEngine.turn() ? 'x' : '';
+
+    if (validMovesForPiece.indexOf(piece.prefix + isCapture + toSquare.id) !== -1) {
       return true;
     }
 
-    if (availableMoves[piece.color].indexOf(piece.prefix + isCapture + square.id + '+') !== -1) {
+    if (validMovesForPiece.indexOf(piece.prefix + isCapture + toSquare.id + '+') !== -1) {
       return true;
     }
 
-    if (availableMoves[piece.color].indexOf(piece.prefix + isCapture + square.id + '#') !== -1) {
+    if (validMovesForPiece.indexOf(piece.prefix + isCapture + toSquare.id + '#') !== -1) {
       return true;
     }
 
@@ -494,12 +538,15 @@ window.addEventListener('DOMContentLoaded', function () {
           y = e.offsetY || e.changedTouches[0].clientY;
 
       drawChessBoard(NOTATION_MAP);
+
       ctx.save();
       ctx.fillStyle = '#000';
       ctx.scale(scale, scale);
       var textSize = isMobile ? ctx.measureText(pieceToDraw).width : ctx.measureText(pieceToDraw).width * 5;
       ctx.fillText(pieceToDraw, (x - textSize) / scale, (y + textSize) / scale);
       ctx.restore();  
+
+      showMovesWhileMoving(square);
     }
     
     display.canvas.addEventListener(mouseMoveEvent, movePiece);
@@ -515,7 +562,7 @@ window.addEventListener('DOMContentLoaded', function () {
           colClicked   = Math.floor(clickX / squareWidth),
           targetSquare = getSquareFromClick(colClicked, rowClicked);
 
-      if (isValidMove(targetSquare, movingPiece)) {
+      if (isValidMove(targetSquare, movingPiece, square)) {
         console.log('Valid move!');
         makeMove(targetSquare, movingPiece, square);
 
