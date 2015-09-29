@@ -1649,6 +1649,12 @@ window.addEventListener('DOMContentLoaded', function () {
 
   var display = require('../core/fullScreenDisplay'),
       Chess   = require('../core/chess'),
+      
+      isMobile           = 'ontouchstart' in document.documentElement,
+
+      mouseUpEvent       = isMobile ? 'touchend'   : 'mouseup',
+      mouseDownEvent     = isMobile ? 'touchstart' : 'mousedown',
+      mouseMoveEvent     = isMobile ? 'touchmove'  : 'mousemove',
 
       PLAYER_COLOR       = 'w',
 
@@ -1877,7 +1883,7 @@ window.addEventListener('DOMContentLoaded', function () {
   
     updateAvailableMoves();
 
-    display.canvas.addEventListener('mousemove', showMoves);
+    display.canvas.addEventListener(mouseMoveEvent, showMoves);
 
   }
 
@@ -1888,8 +1894,8 @@ window.addEventListener('DOMContentLoaded', function () {
       return;
     }
 
-    var clickX       = e.offsetX,
-        clickY       = e.offsetY,
+    var clickX       = e.offsetX || e.changedTouches[0].clientX,
+        clickY       = e.offsetY || e.changedTouches[0].clientY,
         canvas       = display.canvas,
         ctx          = display.ctx,
         squareWidth  = canvas.width / NUMBER_OF_COLS,
@@ -2129,21 +2135,25 @@ window.addEventListener('DOMContentLoaded', function () {
     drawChessBoard(NOTATION_MAP);
     
     function movePiece (e) {
+
+      var x = e.offsetX || e.changedTouches[0].clientX,
+          y = e.offsetY || e.changedTouches[0].clientY;
+
       drawChessBoard(NOTATION_MAP);
       ctx.save();
       ctx.fillStyle = '#000';
       ctx.scale(scale, scale);
-      var textSize = ctx.measureText(pieceToDraw).width * 5;
-      ctx.fillText(pieceToDraw, (e.offsetX - textSize) / scale, (e.offsetY + textSize) / scale);
+      var textSize = isMobile ? ctx.measureText(pieceToDraw).width : ctx.measureText(pieceToDraw).width * 5;
+      ctx.fillText(pieceToDraw, (x - textSize) / scale, (y + textSize) / scale);
       ctx.restore();  
     }
     
-    display.canvas.addEventListener('mousemove', movePiece);
+    display.canvas.addEventListener(mouseMoveEvent, movePiece);
  
-    display.canvas.addEventListener('mouseup', function detachMouseMove (e) {
+    display.canvas.addEventListener(mouseUpEvent, function detachMouseMove (e) {
 
-      var clickX       = e.offsetX,
-          clickY       = e.offsetY,
+      var clickX       = e.offsetX || e.changedTouches[0].clientX,
+          clickY       = e.offsetY || e.changedTouches[0].clientY,
           canvas       = display.canvas,
           squareWidth  = canvas.width / NUMBER_OF_COLS,
           squareHeight = canvas.height / NUMBER_OF_ROWS,
@@ -2162,27 +2172,29 @@ window.addEventListener('DOMContentLoaded', function () {
       drawChessBoard(NOTATION_MAP);
       updateAvailableMoves();
       
-      display.canvas.removeEventListener('mousemove', movePiece);
-      display.canvas.removeEventListener('mouseup', detachMouseMove);
+      display.canvas.removeEventListener(mouseMoveEvent, movePiece);
+      display.canvas.removeEventListener(mouseUpEvent, detachMouseMove);
       
       if (chessEngine.game_over() || chessEngine.game_over()) {
-        var colorWin = !!chessEngine.moves().length && chessEngine.turn() === 'b' ? 'Black': 'White';
+        var colorWin = chessEngine.moves().length === 0 && chessEngine.turn() === 'b' ? 'White': 'Black';
         if (confirm(colorWin + ' wins!')) {
           window.location = window.location;
         } else {
           window.location = window.location;
         }
+        return;
       }
 
       chessEngine.swap_color();
       
       if (chessEngine.game_over() || chessEngine.game_over()) {
-        var colorWin = !!chessEngine.moves().length && chessEngine.turn() === 'b' ? 'Black': 'White';
+        var colorWin = chessEngine.moves().length === 0 && chessEngine.turn() === 'b' ? 'White': 'Black';
         if (confirm(colorWin + ' wins!')) {
           window.location = window.location;
         } else {
           window.location = window.location;
         }
+        return;
       }
 
     });
@@ -2200,10 +2212,10 @@ window.addEventListener('DOMContentLoaded', function () {
     drawChessBoard(NOTATION_MAP);
   });
 
-  display.canvas.addEventListener('mousedown', function (e) {
+  display.canvas.addEventListener(mouseDownEvent, function (e) {
 
-    var clickX       = e.offsetX,
-        clickY       = e.offsetY,
+    var clickX       = e.offsetX || e.changedTouches[0].clientX,
+        clickY       = e.offsetY || e.changedTouches[0].clientY,
         canvas       = display.canvas,
         squareWidth  = canvas.width / NUMBER_OF_COLS,
         squareHeight = canvas.height / NUMBER_OF_ROWS,
