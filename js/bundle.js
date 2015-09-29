@@ -1909,7 +1909,7 @@ window.addEventListener('DOMContentLoaded', function () {
       destinationSquares.push([NOTATION_MAP[currentMove].colIndex, NOTATION_MAP[currentMove].rowIndex]);
     }
 
-    ctx.lineWidth = 10;
+    ctx.lineWidth = isMobile ? 2 : 10;
     ctx.beginPath();
     ctx.moveTo(startingSquare[0] * squareWidth + squareWidth / 2, startingSquare[1] * squareHeight + squareHeight / 2);
     
@@ -1922,7 +1922,7 @@ window.addEventListener('DOMContentLoaded', function () {
 
     for (var i = 0; i < destinationSquares.length; i++) {
       ctx.beginPath();
-      ctx.arc(destinationSquares[i][0] * squareWidth  + squareWidth / 2, destinationSquares[i][1] * squareHeight + squareHeight / 2, 33, 0, 2 * Math.PI, false);
+      ctx.arc(destinationSquares[i][0] * squareWidth  + squareWidth / 2, destinationSquares[i][1] * squareHeight + squareHeight / 2, (isMobile ? 33/5 : 33), 0, 2 * Math.PI, false);
       ctx.stroke();
       ctx.closePath();
     }
@@ -2171,6 +2171,10 @@ window.addEventListener('DOMContentLoaded', function () {
         pieceToDraw  = square.piece.type,
         movingPiece  = square.piece;
   
+    if (chessEngine.turn() !== square.piece.color) {
+      chessEngine.swap_color();
+    }
+
     square.piece = {
       'type': '',
       'color': ''
