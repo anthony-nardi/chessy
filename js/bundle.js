@@ -1657,7 +1657,7 @@ window.addEventListener('DOMContentLoaded', function () {
       mouseMoveEvent     = isMobile ? 'touchmove'  : 'mousemove',
 
       PLAYER_COLOR       = 'w',
-      PIECE_COOLDOWN_MS  = 8000,
+      PIECE_COOLDOWN_MS  = 10000,
 
       BLACK_SQUARE_COLOR = '#d18b47',
       WHITE_SQUARE_COLOR = '#ffce9e',
@@ -1718,7 +1718,8 @@ window.addEventListener('DOMContentLoaded', function () {
         col          = square.colIndex,
         squareWidth  = canvas.width / NUMBER_OF_COLS,
         squareHeight = canvas.height / NUMBER_OF_ROWS,
-        scale        = squareWidth / 10;
+        rowOffset    = isMobile ? 0.8 : 0.90,
+        scale        = isMobile ? squareWidth / 12 : squareWidth / 10;
 
     square.piece.cooldown = true;
     
@@ -1731,14 +1732,15 @@ window.addEventListener('DOMContentLoaded', function () {
       ctx.save();
       ctx.fillStyle = '#000';
       ctx.scale(scale, scale);
-      ctx.fillText(square.piece.type, (col * squareWidth / scale), ((row + 0.90) * squareWidth / scale));
+      ctx.fillText(square.piece.type, (col * squareWidth / scale), ((row + rowOffset) * squareWidth / scale));
       ctx.restore();
       
       if (currentTime - startTime < PIECE_COOLDOWN_MS) {
         console.log(arc);
         ctx.beginPath();
         ctx.strokeStyle = 'green';
-        ctx.arc(col * squareWidth  + squareWidth / 2, row * squareHeight + squareHeight / 2, (isMobile ? 33/5 : 33), 0, arc, false);
+        ctx.lineWidth = isMobile ? 4 : 10;
+        ctx.arc(col * squareWidth  + squareWidth / 2, row * squareHeight + squareHeight / 2, (isMobile ? 33/3 : 33), 0, arc, false);
         ctx.stroke();
         ctx.closePath();
         ctx.strokeStyle = 'black';
@@ -2017,7 +2019,7 @@ window.addEventListener('DOMContentLoaded', function () {
 
     drawChessBoard(NOTATION_MAP);
 
-    ctx.lineWidth = 10;
+    ctx.lineWidth = isMobile ? 2 : 10;
     ctx.beginPath();
     ctx.moveTo(startingSquare[0] * squareWidth + squareWidth / 2, startingSquare[1] * squareHeight + squareHeight / 2);
     
@@ -2043,7 +2045,8 @@ window.addEventListener('DOMContentLoaded', function () {
         ctx          = display.ctx,
         squareWidth  = canvas.width / NUMBER_OF_COLS,
         squareHeight = canvas.height / NUMBER_OF_ROWS,
-        scale        = squareWidth / 10,
+        scale        = isMobile ? squareWidth / 12 : squareWidth / 10,
+        rowOffset    = isMobile ? 0.8 : 0.90,
         currentSquare; 
     
     for (var square in board) {
@@ -2055,7 +2058,7 @@ window.addEventListener('DOMContentLoaded', function () {
         ctx.fillStyle = '#000';
 
         ctx.scale(scale, scale);
-        ctx.fillText(currentSquare.piece.type, (currentSquare.colIndex * squareWidth / scale), ((currentSquare.rowIndex + 0.90) * squareWidth / scale));
+        ctx.fillText(currentSquare.piece.type, (currentSquare.colIndex * squareWidth / scale), ((currentSquare.rowIndex + rowOffset) * squareWidth / scale));
         ctx.restore();
       }
     }
@@ -2213,7 +2216,7 @@ window.addEventListener('DOMContentLoaded', function () {
     var canvas       = display.canvas,
         ctx          = display.ctx,
         squareWidth  = canvas.width / NUMBER_OF_COLS,
-        scale        = squareWidth / 10,
+        scale        = isMobile ? squareWidth / 12 : squareWidth / 10,
         pieceToDraw  = square.piece.type,
         movingPiece  = square.piece;
   
