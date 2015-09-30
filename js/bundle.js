@@ -1738,7 +1738,7 @@ window.addEventListener('DOMContentLoaded', function () {
       if (currentTime - startTime < PIECE_COOLDOWN_MS) {
         console.log(arc);
         ctx.beginPath();
-        ctx.strokeStyle = 'green';
+        ctx.strokeStyle = '#4CFF4C';
         ctx.lineWidth = isMobile ? 4 : 10;
         ctx.arc(col * squareWidth  + squareWidth / 2, row * squareHeight + squareHeight / 2, (isMobile ? 33/3 : 33), 0, arc, false);
         ctx.stroke();
