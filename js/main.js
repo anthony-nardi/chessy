@@ -11,6 +11,7 @@ window.addEventListener('DOMContentLoaded', function () {
       mouseMoveEvent     = isMobile ? 'touchmove'  : 'mousemove',
 
       PLAYER_COLOR       = 'w',
+      PIECE_COOLDOWN_MS  = 8000,
 
       BLACK_SQUARE_COLOR = '#d18b47',
       WHITE_SQUARE_COLOR = '#ffce9e',
@@ -61,6 +62,49 @@ window.addEventListener('DOMContentLoaded', function () {
       };
 
   window.NOTATION_MAP = NOTATION_MAP;
+
+  function beginPieceCooldownVisual (square) {
+    
+    var startTime    = Date.now(),
+        ctx          = display.ctx,
+        canvas       = display.canvas,
+        row          = square.rowIndex,
+        col          = square.colIndex,
+        squareWidth  = canvas.width / NUMBER_OF_COLS,
+        squareHeight = canvas.height / NUMBER_OF_ROWS,
+        scale        = squareWidth / 10;
+
+    square.piece.cooldown = true;
+    
+    function tick () {
+      var currentTime = Date.now(),
+          arc         = 2 * Math.PI * (((PIECE_COOLDOWN_MS - (currentTime - startTime)) / PIECE_COOLDOWN_MS));
+        
+      ctx.fillStyle = square.color;
+      ctx.fillRect(col * squareWidth, row * squareHeight, squareWidth, squareHeight);
+      ctx.save();
+      ctx.fillStyle = '#000';
+      ctx.scale(scale, scale);
+      ctx.fillText(square.piece.type, (col * squareWidth / scale), ((row + 0.90) * squareWidth / scale));
+      ctx.restore();
+      
+      if (currentTime - startTime < PIECE_COOLDOWN_MS) {
+        console.log(arc);
+        ctx.beginPath();
+        ctx.strokeStyle = 'green';
+        ctx.arc(col * squareWidth  + squareWidth / 2, row * squareHeight + squareHeight / 2, (isMobile ? 33/5 : 33), 0, arc, false);
+        ctx.stroke();
+        ctx.closePath();
+        ctx.strokeStyle = 'black';
+        window.requestAnimationFrame(tick);
+      } else {
+        console.log('Piece is ready to be moved.');
+        square.piece.cooldown = false;
+      }
+    }
+
+    window.requestAnimationFrame(tick);
+  }
 
   function getInitialChessPiece (square) {
 
@@ -242,7 +286,6 @@ window.addEventListener('DOMContentLoaded', function () {
   }
 
   function showMovesWhileMoving (squareClicked) {
-
     var canvas             = display.canvas,
         ctx                = display.ctx,
         squareWidth        = canvas.width / NUMBER_OF_COLS,
@@ -284,7 +327,7 @@ window.addEventListener('DOMContentLoaded', function () {
   }
 
   function showMoves (e) {
-
+  
     // If mousedown, dont show moves?  Nah, show moves for currently selected piece...
     if (e.which) {
       return;
@@ -498,6 +541,7 @@ window.addEventListener('DOMContentLoaded', function () {
     
     if (isPawnMovingTwoSquares(targetSquare, movingPiece, fromSquare)) {
       movePawnTwoSquares(targetSquare, movingPiece, fromSquare);
+      beginPieceCooldownVisual(targetSquare);
       return;
     }
 
@@ -509,7 +553,9 @@ window.addEventListener('DOMContentLoaded', function () {
       'targetSquare': targetSquare.id,
       'movingPiece' : movingPiece
     });
-
+    
+    beginPieceCooldownVisual(targetSquare);
+   
     chessEngine.swap_color();
 
     console.log(chessEngine.ascii());
@@ -630,7 +676,7 @@ window.addEventListener('DOMContentLoaded', function () {
 
     pieceClicked = getSquareFromClick(colClicked, rowClicked);
 
-    if (pieceClicked && pieceClicked.piece && pieceClicked.piece.type && pieceClicked.piece.color === PLAYER_COLOR) {
+    if (pieceClicked && pieceClicked.piece && pieceClicked.piece.type && pieceClicked.piece.color === PLAYER_COLOR && !pieceClicked.piece.cooldown) {
       enableMoving(pieceClicked, e);
     }
 
