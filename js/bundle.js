@@ -1704,21 +1704,15 @@ window.addEventListener('DOMContentLoaded', function () {
       availableMoves     = {
         'b': [],
         'w': []
-      };
+      },
+
+      placeSound  = new Audio('audio/place.mp3');
 
   window.NOTATION_MAP = NOTATION_MAP;
 
-  // function playPickUpSound () {
-  //   var el = document.getElementById('pick_up_sound');
-  //   el.currentTime = 0; 
-  //   el.play();
-  // }
-
-  // function playPlaceSound () {
-  //   var el = document.getElementById('place_sound');
-  //   el.currentTime = 0;
-  //   el.play();
-  // }
+  function playPlaceSound () {
+    placeSound.play();
+  }
 
   function beginPieceCooldownVisual (square) {
     
@@ -2215,8 +2209,8 @@ window.addEventListener('DOMContentLoaded', function () {
     beginPieceCooldownVisual(targetSquare);
    
     chessEngine.swap_color();
-
-    console.log(chessEngine.ascii());
+    
+    playPlaceSound();    
   
   }
 
@@ -2302,6 +2296,7 @@ window.addEventListener('DOMContentLoaded', function () {
     });
 
     movePiece(click);
+
   }
 
   window.initChessBoard = initChessBoard;
@@ -2329,7 +2324,6 @@ window.addEventListener('DOMContentLoaded', function () {
 
     if (pieceClicked && pieceClicked.piece && pieceClicked.piece.type && pieceClicked.piece.color === PLAYER_COLOR && !pieceClicked.piece.cooldown) {
       enableMoving(pieceClicked, e);
-      // playPickUpSound();
     }
 
 
