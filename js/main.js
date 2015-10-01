@@ -433,52 +433,58 @@ window.addEventListener('DOMContentLoaded', function () {
     return chessEngine.moves({square: square.id});
   }
 
-  function isValidMove (toSquare, piece, fromSquare) {
+  function getValidMove (toSquare, piece, fromSquare) {
     
     console.log('is move ' + (piece.prefix + toSquare.id) + ' in ', availableMoves[piece.color]);
   
     var validMovesForPiece = chessEngine.moves({'square': fromSquare.id});
 
     var isCapture = toSquare.piece.type && toSquare.piece.color !== chessEngine.turn() ? 'x' : '';
+    var rowId     = fromSquare.id.charAt(1);
+    var colId     = fromSquare.id.charAt(0);
 
+    //without row or col specifier
     if (validMovesForPiece.indexOf(piece.prefix + isCapture + toSquare.id) !== -1) {
-      return true;
+      return piece.prefix + isCapture + toSquare.id;
     }
 
     if (validMovesForPiece.indexOf(piece.prefix + isCapture + toSquare.id + '+') !== -1) {
-      return true;
+      return piece.prefix + isCapture + toSquare.id + '+';
     }
 
     if (validMovesForPiece.indexOf(piece.prefix + isCapture + toSquare.id + '#') !== -1) {
-      return true;
+      return piece.prefix + isCapture + toSquare.id + '#';
+    }
+
+    // with row specifier
+    if (validMovesForPiece.indexOf(piece.prefix + rowId + isCapture + toSquare.id) !== -1) {
+      return piece.prefix + rowId + isCapture + toSquare.id;
+    }
+
+    if (validMovesForPiece.indexOf(piece.prefix + rowId + isCapture + toSquare.id + '+') !== -1) {
+      return piece.prefix + rowId + isCapture + toSquare.id + '+';
+    }
+
+    if (validMovesForPiece.indexOf(piece.prefix + rowId + isCapture + toSquare.id + '#') !== -1) {
+      return piece.prefix + rowId + isCapture + toSquare.id + '#';
+    }
+
+
+    // with col specifier
+    if (validMovesForPiece.indexOf(piece.prefix + colId + isCapture + toSquare.id) !== -1) {
+      return piece.prefix + colId + isCapture + toSquare.id;
+    }
+
+    if (validMovesForPiece.indexOf(piece.prefix + colId + isCapture + toSquare.id + '+') !== -1) {
+      return piece.prefix + colId + isCapture + toSquare.id + '+';
+    }
+
+    if (validMovesForPiece.indexOf(piece.prefix + colId + isCapture + toSquare.id + '#') !== -1) {
+      return piece.prefix + colId + isCapture + toSquare.id + '#';
     }
 
   }
   
-  function isValidMoveCheck (square, piece) {
-    
-    console.log('is move ' + (piece.prefix + square.id) + ' in ', availableMoves[piece.color]);
-  
-    var isCapture = square.piece.type && square.piece.color !== chessEngine.turn() ? 'x' : '';
-
-    if (availableMoves[piece.color].indexOf(piece.prefix + isCapture + square.id + '+') !== -1) {
-      return true;
-    }
-  
-  }
-
-  function isValidMoveCheckMate (square, piece) {
-
-    console.log('is move ' + (piece.prefix + square.id) + ' in ', availableMoves[piece.color]);
-  
-    var isCapture = square.piece.type && square.piece.color !== chessEngine.turn() ? 'x' : '';
-
-    if (availableMoves[piece.color].indexOf(piece.prefix + isCapture + square.id + '#') !== -1) {
-      return true;
-    }
-  
-  }
-
   function isPawnMovingTwoSquares (targetSquare, movingPiece, fromSquare) {
     if (movingPiece.prefix === '') {
       return (Math.abs(+targetSquare.id.charAt(1) - +fromSquare.id.charAt(1)) === 2);
@@ -530,11 +536,7 @@ window.addEventListener('DOMContentLoaded', function () {
 
   }
 
-  function makeMove (targetSquare, movingPiece, fromSquare) {
-    
-    var isCapture       = targetSquare.piece.type && targetSquare.piece.color !== chessEngine.turn() ? 'x' : '',
-        isCheckingMove  = isValidMoveCheck(targetSquare, movingPiece) ? '+' : '',
-        isCheckmateMove = isValidMoveCheckMate(targetSquare, movingPiece) ? '#' : '';
+  function makeMove (targetSquare, movingPiece, fromSquare, validMove) {
 
     targetSquare.piece = movingPiece;
     
@@ -548,10 +550,10 @@ window.addEventListener('DOMContentLoaded', function () {
       return;
     }
 
-    chessEngine.move(movingPiece.prefix + isCapture + targetSquare.id + isCheckingMove + isCheckmateMove);
+    chessEngine.move(validMove);
 
     window.emitMove({
-      'move'        : movingPiece.prefix + isCapture + targetSquare.id + isCheckingMove + isCheckmateMove,
+      'move'        : validMove,
       'fromSquare'  : fromSquare.id,
       'targetSquare': targetSquare.id,
       'movingPiece' : movingPiece
@@ -613,11 +615,12 @@ window.addEventListener('DOMContentLoaded', function () {
           squareHeight = canvas.height / NUMBER_OF_ROWS,
           rowClicked   = Math.floor(clickY / squareHeight),
           colClicked   = Math.floor(clickX / squareWidth),
-          targetSquare = getSquareFromClick(colClicked, rowClicked);
+          targetSquare = getSquareFromClick(colClicked, rowClicked),
+          validMove    = getValidMove(targetSquare, movingPiece, square);
 
-      if (isValidMove(targetSquare, movingPiece, square)) {
+      if (validMove) {
         console.log('Valid move!');
-        makeMove(targetSquare, movingPiece, square);
+        makeMove(targetSquare, movingPiece, square, validMove);
 
       } else {
         console.log('Invalid move...');
