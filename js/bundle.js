@@ -1700,7 +1700,6 @@ window.addEventListener('DOMContentLoaded', function () {
 
       NOTATION_MAP       = {},
 
-      gameState          = [],
       chessEngine,
       availableMoves     = {
         'b': [],
@@ -1889,8 +1888,6 @@ window.addEventListener('DOMContentLoaded', function () {
 
     for (var colIndex = 0; colIndex < NUMBER_OF_COLS; colIndex++) {
      
-      gameState.push([]);
-     
       for (var rowIndex = 0; rowIndex < NUMBER_OF_ROWS; rowIndex++) {
         if (rowIndex % 2 === 0 && colIndex % 2 === 0) {
           squareColor = WHITE_SQUARE_COLOR;
@@ -1913,7 +1910,6 @@ window.addEventListener('DOMContentLoaded', function () {
 
         NOTATION_MAP[currentSquare.id] = currentSquare;
 
-        gameState[colIndex].push(currentSquare);
       }
 
 
@@ -2130,7 +2126,7 @@ window.addEventListener('DOMContentLoaded', function () {
     }
 
   }
-  
+
   function isPawnMovingTwoSquares (targetSquare, movingPiece, fromSquare) {
     if (movingPiece.prefix === '') {
       return (Math.abs(+targetSquare.id.charAt(1) - +fromSquare.id.charAt(1)) === 2);
@@ -2280,11 +2276,7 @@ window.addEventListener('DOMContentLoaded', function () {
       
       if (chessEngine.game_over() || chessEngine.game_over()) {
         var colorWin = chessEngine.moves().length === 0 && chessEngine.turn() === 'b' ? 'White': 'Black';
-        if (confirm(colorWin + ' wins!')) {
-          window.location = window.location;
-        } else {
-          window.location = window.location;
-        }
+        alert(colorWin + ' wins!');
         return;
       }
 
@@ -2292,11 +2284,7 @@ window.addEventListener('DOMContentLoaded', function () {
       
       if (chessEngine.game_over() || chessEngine.game_over()) {
         var colorWin = chessEngine.moves().length === 0 && chessEngine.turn() === 'b' ? 'White': 'Black';
-        if (confirm(colorWin + ' wins!')) {
-          window.location = window.location;
-        } else {
-          window.location = window.location;
-        }
+        alert(colorWin + ' wins!');
         return;
       }
 

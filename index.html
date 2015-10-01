@@ -71,7 +71,22 @@
               window.chessEngine.move(move.move);
               window.chessEngine.swap_color();
             }
+
             window.updateBoard();
+
+            if (window.chessEngine.game_over() || window.chessEngine.game_over()) {
+              var colorWin = window.chessEngine.moves().length === 0 && window.chessEngine.turn() === 'b' ? 'White': 'Black';
+              alert(colorWin + ' wins!');
+              return;
+            }
+
+            window.chessEngine.swap_color();
+            
+            if (window.chessEngine.game_over() || window.chessEngine.game_over()) {
+              var colorWin = window.chessEngine.moves().length === 0 && window.chessEngine.turn() === 'b' ? 'White': 'Black';
+              alert(colorWin + ' wins!');
+              return;
+            }
           });
         });
         document.getElementById('player_list').addEventListener('click', function (e) {
