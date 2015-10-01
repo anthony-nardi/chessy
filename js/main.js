@@ -63,11 +63,15 @@ window.addEventListener('DOMContentLoaded', function () {
   window.NOTATION_MAP = NOTATION_MAP;
 
   function playPickUpSound () {
-    document.getElementById('pick_up_sound').play();
+    var el = document.getElementById('pick_up_sound');
+    el.currentTime = 0; 
+    el.play();
   }
 
   function playPlaceSound () {
-    document.getElementById('place_sound').play();
+    var el = document.getElementById('place_sound');
+    el.currentTime = 0;
+    el.play();
   }
 
   function beginPieceCooldownVisual (square) {
