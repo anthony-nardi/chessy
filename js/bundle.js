@@ -1708,17 +1708,17 @@ window.addEventListener('DOMContentLoaded', function () {
 
   window.NOTATION_MAP = NOTATION_MAP;
 
-  function playPickUpSound () {
-    var el = document.getElementById('pick_up_sound');
-    el.currentTime = 0; 
-    el.play();
-  }
+  // function playPickUpSound () {
+  //   var el = document.getElementById('pick_up_sound');
+  //   el.currentTime = 0; 
+  //   el.play();
+  // }
 
-  function playPlaceSound () {
-    var el = document.getElementById('place_sound');
-    el.currentTime = 0;
-    el.play();
-  }
+  // function playPlaceSound () {
+  //   var el = document.getElementById('place_sound');
+  //   el.currentTime = 0;
+  //   el.play();
+  // }
 
   function beginPieceCooldownVisual (square) {
     
@@ -2274,7 +2274,7 @@ window.addEventListener('DOMContentLoaded', function () {
       if (validMove) {
         console.log('Valid move!');
         makeMove(targetSquare, movingPiece, square, validMove);
-        playPlaceSound();
+        // playPlaceSound();
       } else {
         console.log('Invalid move...');
         square.piece = movingPiece;
@@ -2329,7 +2329,7 @@ window.addEventListener('DOMContentLoaded', function () {
 
     if (pieceClicked && pieceClicked.piece && pieceClicked.piece.type && pieceClicked.piece.color === PLAYER_COLOR && !pieceClicked.piece.cooldown) {
       enableMoving(pieceClicked, e);
-      playPickUpSound();
+      // playPickUpSound();
     }
 
 
