@@ -58,15 +58,10 @@ window.addEventListener('DOMContentLoaded', function () {
       availableMoves     = {
         'b': [],
         'w': []
-      },
-
-      placeSound  = new Audio('audio/place.mp3');
+      };
 
   window.NOTATION_MAP = NOTATION_MAP;
 
-  function playPlaceSound () {
-    placeSound.play();
-  }
 
   function beginPieceCooldownVisual (square) {
     
@@ -564,8 +559,6 @@ window.addEventListener('DOMContentLoaded', function () {
    
     chessEngine.swap_color();
     
-    playPlaceSound();    
-  
   }
 
   function enableMoving (square, click) {
