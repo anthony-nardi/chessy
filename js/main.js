@@ -70,6 +70,9 @@ window.addEventListener('DOMContentLoaded', function () {
   var winGameSound       = new Audio('audio/win_game.wav');
   var errorCooldownSound = new Audio('audio/error_cooldown.wav');
 
+  errorCooldownSound.volume = 0.5;
+  capturedSound.volume      = 0.5;
+
   function playSound (sound) {
     if (!isMobile) {
       sound.pause();
@@ -374,6 +377,9 @@ window.addEventListener('DOMContentLoaded', function () {
     for (var i = 0; i < moves.length; i++) {
       moves[i] = moves[i].replace('+', '');
       moves[i] = moves[i].replace('#', '');
+      if (moves[i].indexOf('=') !== -1) {
+        moves[i] = moves[i].split('=')[0];
+      }
       if (moves[i].length > 2) {
         currentMove = moves[i].slice(-2);
       } else {
@@ -454,9 +460,10 @@ window.addEventListener('DOMContentLoaded', function () {
   
     var validMovesForPiece = chessEngine.moves({'square': fromSquare.id});
 
-    var isCapture = toSquare.piece.type && toSquare.piece.color !== chessEngine.turn() ? 'x' : '';
-    var rowId     = fromSquare.id.charAt(1);
-    var colId     = fromSquare.id.charAt(0);
+    var isCapture          = toSquare.piece.type && toSquare.piece.color !== chessEngine.turn() ? 'x' : '';
+    var pawnUpgradeToQueen = '=Q';
+    var rowId              = fromSquare.id.charAt(1);
+    var colId              = fromSquare.id.charAt(0);
 
     //without row or col specifier
     if (validMovesForPiece.indexOf(piece.prefix + isCapture + toSquare.id) !== -1) {
@@ -471,6 +478,10 @@ window.addEventListener('DOMContentLoaded', function () {
       return piece.prefix + isCapture + toSquare.id + '#';
     }
 
+    if (validMovesForPiece.indexOf(piece.prefix + isCapture + toSquare.id + pawnUpgradeToQueen) !== -1) {
+      return piece.prefix + isCapture + toSquare.id + pawnUpgradeToQueen;
+    }   
+
     // with row specifier
     if (validMovesForPiece.indexOf(piece.prefix + rowId + isCapture + toSquare.id) !== -1) {
       return piece.prefix + rowId + isCapture + toSquare.id;
@@ -484,6 +495,9 @@ window.addEventListener('DOMContentLoaded', function () {
       return piece.prefix + rowId + isCapture + toSquare.id + '#';
     }
 
+    if (validMovesForPiece.indexOf(piece.prefix + rowId + isCapture + toSquare.id + pawnUpgradeToQueen) !== -1) {
+      return piece.prefix + rowId + isCapture + toSquare.id + pawnUpgradeToQueen;
+    }   
 
     // with col specifier
     if (validMovesForPiece.indexOf(piece.prefix + colId + isCapture + toSquare.id) !== -1) {
@@ -498,6 +512,9 @@ window.addEventListener('DOMContentLoaded', function () {
       return piece.prefix + colId + isCapture + toSquare.id + '#';
     }
 
+    if (validMovesForPiece.indexOf(piece.prefix + colId + isCapture + toSquare.id + pawnUpgradeToQueen) !== -1) {
+      return piece.prefix + colId + isCapture + toSquare.id + pawnUpgradeToQueen;
+    }   
   }
 
   function isPawnMovingTwoSquares (targetSquare, movingPiece, fromSquare) {
@@ -565,8 +582,15 @@ window.addEventListener('DOMContentLoaded', function () {
       return;
     }
 
-    chessEngine.move(validMove);
+    // Is queen upgrade.
+    if (validMove.indexOf('=') !== -1) {
+      var queenPiece = PLAYER_COLOR === 'w' ? WHITE_QUEEN : BLACK_QUEEN;
+      targetSquare.piece.type   = queenPiece;
+      targetSquare.piece.prefix = 'Q';
+    } 
 
+    chessEngine.move(validMove);
+    
     window.emitMove({
       'move'        : validMove,
       'fromSquare'  : fromSquare.id,
@@ -575,8 +599,6 @@ window.addEventListener('DOMContentLoaded', function () {
     });
     
     beginPieceCooldownVisual(targetSquare);
-   
-    chessEngine.swap_color();
     
   }
 

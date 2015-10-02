@@ -1222,8 +1222,7 @@ var Chess = function(fen) {
       return half_moves >= 100 ||
              in_checkmate() ||
              in_stalemate() ||
-             insufficient_material() ||
-             in_threefold_repetition();
+             insufficient_material();
     },
 
     validate_fen: function(fen) {
