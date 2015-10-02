@@ -1709,8 +1709,19 @@ window.addEventListener('DOMContentLoaded', function () {
   window.NOTATION_MAP = NOTATION_MAP;
 
 
-  var pickUpSound = new Audio('audio/pick_up.wav');
-  var placeSound  = new Audio('audio/place.wav');
+  var pickUpSound        = new Audio('audio/pick_up.wav');
+  var placeSound         = new Audio('audio/place.wav');
+  var capturedSound      = new Audio('audio/captured.wav');
+  var lostGameSound      = new Audio('audio/lost_game.wav');
+  var errorCooldownSound = new Audio('audio/error_cooldown.wav');
+
+  function playSound (sound) {
+    if (!isMobile) {
+      sound.pause();
+      sound.currentTime = 0;
+      sound.play();
+    }
+  }
 
   function beginPieceCooldownVisual (square) {
     
@@ -2078,6 +2089,10 @@ window.addEventListener('DOMContentLoaded', function () {
     return chessEngine.moves({square: square.id});
   }
 
+  function isCapture (toSquare) {
+    return toSquare.piece.type && toSquare.piece.color !== PLAYER_COLOR;
+  }
+
   function getValidMove (toSquare, piece, fromSquare) {
     
     console.log('is move ' + (piece.prefix + toSquare.id) + ' in ', availableMoves[piece.color]);
@@ -2263,12 +2278,12 @@ window.addEventListener('DOMContentLoaded', function () {
 
       if (validMove) {
         console.log('Valid move!');
-        makeMove(targetSquare, movingPiece, square, validMove);
-        if (!isMobile) {
-          placeSound.pause();
-          placeSound.currentTime = 0;
-          placeSound.play();
+        if (isCapture(targetSquare)) {
+          playSound(capturedSound);
+        } else {
+          playSound(placeSound);
         }
+        makeMove(targetSquare, movingPiece, square, validMove);
       } else {
         console.log('Invalid move...');
         square.piece = movingPiece;
@@ -2323,12 +2338,12 @@ window.addEventListener('DOMContentLoaded', function () {
     pieceClicked = getSquareFromClick(colClicked, rowClicked);
 
     if (pieceClicked && pieceClicked.piece && pieceClicked.piece.type && pieceClicked.piece.color === PLAYER_COLOR && !pieceClicked.piece.cooldown) {
-      if (!isMobile) {
-        pickUpSound.pause();
-        pickUpSound.currentTime = 0;
-        pickUpSound.play();
-      }
+      playSound(pickUpSound);
       enableMoving(pieceClicked, e);
+    }
+
+    if (pieceClicked && pieceClicked.piece && pieceClicked.piece.type && pieceClicked.piece.color === PLAYER_COLOR && pieceClicked.piece.cooldown) {
+      playSound(errorCooldownSound);
     }
 
 
