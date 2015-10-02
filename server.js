@@ -1,4 +1,3 @@
-var fs = require('fs');
 var express = require('express');
 var app = express();
 var server = require('http').Server(app);
@@ -6,43 +5,6 @@ var io = require('socket.io')(server);
 
 server.listen(process.env.PORT || 80);
 app.use(express.static('./'));
-// app.get('/', function (req, res) {
-//   res.sendfile(__dirname + '/index.html');
-// });
-// var express = require('express');
-// var app = express();
-// var server = require('http').Server(app);
-// server.listen(80);
-// var io = require('socket.io')(server);
-// app.set('port', (process.env.PORT || 5000));
-
-// app.use(express.static(__dirname));
-
-// // views is directory for all template files
-// app.set('views', __dirname + '/views');
-// app.engine('html', rawHtmlViewEngine);
-// app.set('views', './');
-// app.set('view engine', 'html');
-// function rawHtmlViewEngine(filename, options, callback) {
-//     fs.readFile(filename, 'utf8', function(err, str){
-//         if(err) return callback(err);
-
-//         /*
-//          * if required, you could write your own 
-//          * custom view file processing logic here
-//          */
-
-//         callback(null, str);
-//     }); 
-// }
-// app.get('/', function(request, response) {
-//   response.render('index.html');
-// });
-
-// app.listen(app.get('port'), function() {
-//   console.log('Node app is running on port', app.get('port'));
-// });
-
 
 var connections = [];
 
