@@ -55,6 +55,7 @@ window.addEventListener('DOMContentLoaded', function () {
       NOTATION_MAP       = {},
 
       chessEngine,
+
       availableMoves     = {
         'b': [],
         'w': []
@@ -62,11 +63,11 @@ window.addEventListener('DOMContentLoaded', function () {
 
   window.NOTATION_MAP = NOTATION_MAP;
 
-
   var pickUpSound        = new Audio('audio/pick_up.wav');
   var placeSound         = new Audio('audio/place.wav');
   var capturedSound      = new Audio('audio/captured.wav');
   var lostGameSound      = new Audio('audio/lost_game.wav');
+  var winGameSound       = new Audio('audio/win_game.wav');
   var errorCooldownSound = new Audio('audio/error_cooldown.wav');
 
   function playSound (sound) {
@@ -650,6 +651,11 @@ window.addEventListener('DOMContentLoaded', function () {
       
       if (chessEngine.game_over() || chessEngine.game_over()) {
         var colorWin = chessEngine.moves().length === 0 && chessEngine.turn() === 'b' ? 'White': 'Black';
+        if ((colorWin === 'Black' && PLAYER_COLOR === 'b') || (colorWin === 'White' && PLAYER_COLOR === 'w')) {
+          playSound(winGameSound);
+        } else {
+          playSound(lostGameSound);
+        }
         alert(colorWin + ' wins!');
         return;
       }
@@ -658,6 +664,11 @@ window.addEventListener('DOMContentLoaded', function () {
       
       if (chessEngine.game_over() || chessEngine.game_over()) {
         var colorWin = chessEngine.moves().length === 0 && chessEngine.turn() === 'b' ? 'White': 'Black';
+        if ((colorWin === 'Black' && PLAYER_COLOR === 'b') || (colorWin === 'White' && PLAYER_COLOR === 'w')) {
+          playSound(winGameSound);
+        } else {
+          playSound(lostGameSound);
+        }
         alert(colorWin + ' wins!');
         return;
       }
