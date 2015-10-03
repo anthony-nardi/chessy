@@ -302,6 +302,11 @@ window.addEventListener('DOMContentLoaded', function () {
   }
 
   function showMovesWhileMoving (squareClicked) {
+      
+    if (squareClicked.piece.cooldown) {
+      return;
+    }
+
     var canvas             = display.canvas,
         ctx                = display.ctx,
         squareWidth        = canvas.width / NUMBER_OF_COLS,
@@ -363,7 +368,7 @@ window.addEventListener('DOMContentLoaded', function () {
         destinationSquares,
         currentMove;
 
-    if (!pieceClicked || pieceClicked.piece && pieceClicked.piece.color !== PLAYER_COLOR) {
+    if (!pieceClicked || pieceClicked.piece && pieceClicked.piece.color !== PLAYER_COLOR || pieceClicked.piece.cooldown) {
       drawChessBoard(NOTATION_MAP);
       return;
     }

@@ -14,7 +14,7 @@ function getAllPlayers () {
   var names = [];    
 
   for (var i = 0; i < connections.length; i++) {
-    if (connections[i].playerName) {
+    if (connections[i].playerName && !connections[i].inGame) {
       names.push(connections[i].playerName);
     }
   }
@@ -38,9 +38,7 @@ io.on('connection', function (socket) {
 
     socket.playerName = data;
 
-    var allPlayers = getAllPlayers();
-
-    io.emit('players', allPlayers);
+    io.emit('players', getAllPlayers());
 
   });
   
@@ -48,23 +46,21 @@ io.on('connection', function (socket) {
     
     var playerOne = socket,
         playerTwo,
-        roomName = player + socket.playerName,
         PLAYER_ONE_COLOR = 'w',
         PLAYER_TWO_COLOR = 'b';
 
     console.log(player + ' vs ' + socket.playerName);
    
-    socket.room = roomName;
-    
     for (var i = 0; i < connections.length; i++) {
       if (connections[i].playerName === player) {
-        connections[i].room = roomName;
         playerTwo = connections[i];
       }
     }
 
-    playerOne.join(roomName);
-    playerTwo.join(roomName);
+    playerOne.inGame = true;
+    playerTwo.inGame = true;
+    
+    io.emit('players', getAllPlayers());
 
     playerOne.emit('newgame', PLAYER_ONE_COLOR);
     playerTwo.emit('newgame', PLAYER_TWO_COLOR);
