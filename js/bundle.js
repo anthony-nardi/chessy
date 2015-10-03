@@ -1656,12 +1656,15 @@ window.addEventListener('DOMContentLoaded', function () {
       mouseMoveEvent     = isMobile ? 'touchmove'  : 'mousemove',
 
       PLAYER_COLOR       = 'w',
+
       PIECE_COOLDOWN_MS  = 10000,
 
       BLACK_SQUARE_COLOR = '#d18b47',
       WHITE_SQUARE_COLOR = '#ffce9e',
+
       NUMBER_OF_ROWS     = 8,
       NUMBER_OF_COLS     = 8,
+
       WHITE_PAWN         = '\u2659',
       WHITE_KNIGHT       = '\u2658',
       WHITE_BISHOP       = '\u2657',
@@ -1701,19 +1704,12 @@ window.addEventListener('DOMContentLoaded', function () {
 
       chessEngine,
 
-      availableMoves     = {
-        'b': [],
-        'w': []
-      };
-
-  window.NOTATION_MAP = NOTATION_MAP;
-
-  var pickUpSound        = new Audio('audio/pick_up.wav');
-  var placeSound         = new Audio('audio/place.wav');
-  var capturedSound      = new Audio('audio/captured.wav');
-  var lostGameSound      = new Audio('audio/lost_game.wav');
-  var winGameSound       = new Audio('audio/win_game.wav');
-  var errorCooldownSound = new Audio('audio/error_cooldown.wav');
+      pickUpSound        = new Audio('audio/pick_up.wav'),
+      placeSound         = new Audio('audio/place.wav'),
+      capturedSound      = new Audio('audio/captured.wav'),
+      lostGameSound      = new Audio('audio/lost_game.wav'),
+      winGameSound       = new Audio('audio/win_game.wav'),
+      errorCooldownSound = new Audio('audio/error_cooldown.wav');
 
   errorCooldownSound.volume = 0.5;
   capturedSound.volume      = 0.5;
@@ -1889,13 +1885,6 @@ window.addEventListener('DOMContentLoaded', function () {
     return piece;
   }
   
-  function updateAvailableMoves () {
-    availableMoves[chessEngine.turn()] = chessEngine.moves();
-    chessEngine.swap_color();
-    availableMoves[chessEngine.turn()] = chessEngine.moves(); 
-    chessEngine.swap_color();
-  }
-
   function initChessBoard (color) {
     
     var squareColor,
@@ -1936,11 +1925,7 @@ window.addEventListener('DOMContentLoaded', function () {
     
     chessEngine = Chess.Chess();
 
-    console.log(NOTATION_MAP);
-
     window.chessEngine = chessEngine;
-  
-    updateAvailableMoves();
 
     display.canvas.addEventListener(mouseMoveEvent, showMoves);
 
@@ -2092,11 +2077,11 @@ window.addEventListener('DOMContentLoaded', function () {
   }
 
   function getMoves (square) {
-    // console.log('move for turn ' + chessEngine.turn() +  ' for square: ', square);
+
     if (chessEngine.turn() !== square.piece.color) {
       chessEngine.swap_color();
     }
-    // console.log(chessEngine.moves({square: square.id}));
+
     return chessEngine.moves({square: square.id});
   }
 
@@ -2106,8 +2091,6 @@ window.addEventListener('DOMContentLoaded', function () {
 
   function getValidMove (toSquare, piece, fromSquare) {
     
-    console.log('is move ' + (piece.prefix + toSquare.id) + ' in ', availableMoves[piece.color]);
-  
     var validMovesForPiece = chessEngine.moves({'square': fromSquare.id});
 
     var isCapture          = toSquare.piece.type && toSquare.piece.color !== chessEngine.turn() ? 'x' : '';
@@ -2301,7 +2284,8 @@ window.addEventListener('DOMContentLoaded', function () {
           rowClicked   = Math.floor(clickY / squareHeight),
           colClicked   = Math.floor(clickX / squareWidth),
           targetSquare = getSquareFromClick(colClicked, rowClicked),
-          validMove    = getValidMove(targetSquare, movingPiece, square);
+          validMove    = getValidMove(targetSquare, movingPiece, square),
+          gameOver;
 
       if (validMove) {
         console.log('Valid move!');
@@ -2315,34 +2299,22 @@ window.addEventListener('DOMContentLoaded', function () {
         console.log('Invalid move...');
         square.piece = movingPiece;
       }
+
       drawChessBoard(NOTATION_MAP);
-      updateAvailableMoves();
       
       display.canvas.removeEventListener(mouseMoveEvent, movePiece);
       display.canvas.removeEventListener(mouseUpEvent, detachMouseMove);
       
-      if (chessEngine.game_over() || chessEngine.game_over()) {
-        var colorWin = chessEngine.moves().length === 0 && chessEngine.turn() === 'b' ? 'White': 'Black';
-        if ((colorWin === 'Black' && PLAYER_COLOR === 'b') || (colorWin === 'White' && PLAYER_COLOR === 'w')) {
+      gameOver = isGameOver();
+        
+      if (gameOver) {
+        if ((gameOver === 'Black' && PLAYER_COLOR === 'b') || (gameOver === 'White' && PLAYER_COLOR === 'w')) {
           playSound(winGameSound);
+          alert('You won!');
         } else {
           playSound(lostGameSound);
+          alert('You lost.');
         }
-        alert(colorWin + ' wins!');
-        return;
-      }
-
-      chessEngine.swap_color();
-      
-      if (chessEngine.game_over() || chessEngine.game_over()) {
-        var colorWin = chessEngine.moves().length === 0 && chessEngine.turn() === 'b' ? 'White': 'Black';
-        if ((colorWin === 'Black' && PLAYER_COLOR === 'b') || (colorWin === 'White' && PLAYER_COLOR === 'w')) {
-          playSound(winGameSound);
-        } else {
-          playSound(lostGameSound);
-        }
-        alert(colorWin + ' wins!');
-        return;
       }
 
     });
@@ -2350,12 +2322,6 @@ window.addEventListener('DOMContentLoaded', function () {
     movePiece(click);
 
   }
-
-  window.initChessBoard = initChessBoard;
-
-  window.updateBoard = function () {
-    drawChessBoard(NOTATION_MAP);
-  };
 
   window.addEventListener('resize', function () {
     drawChessBoard(NOTATION_MAP);
@@ -2383,12 +2349,113 @@ window.addEventListener('DOMContentLoaded', function () {
       playSound(errorCooldownSound);
     }
 
+  });
 
+  function isGameOver () {
+    if (chessEngine.game_over() || chessEngine.game_over()) {
+      var colorWin = chessEngine.moves().length === 0 && chessEngine.turn() === 'b' ? 'White': 'Black';
+      return colorWin;
+    }
+
+    chessEngine.swap_color();
+    
+    if (chessEngine.game_over() || chessEngine.game_over()) {
+      var colorWin = window.chessEngine.moves().length === 0 && window.chessEngine.turn() === 'b' ? 'White': 'Black';
+      return colorWin;
+    }
+  }
+
+  // Socket stuff
+  var socket = io('/'),
+      myName,
+      playerList;
+
+  function updatePlayerList (players) {
+    playerList = players;
+    var listElement = document.getElementById('player_list');
+    listElement.innerHTML = '<h2>Challenge Player</h2>';
+    for (var i = 0; i < players.length; i++) {
+      if (myName !== players[i]) {
+        var currentPlayerElement = document.createElement('div');
+        currentPlayerElement.setAttribute('class', 'list-group-item');
+        currentPlayerElement.innerHTML = players[i];
+        listElement.appendChild(currentPlayerElement);
+      }
+    }
+  }
+
+  socket.on('players', function (players) {
+    updatePlayerList(players);
   });
   
+  socket.on('challengeRequested', function (player) {
+    console.log('New Challenge From ' + player);
+    if (confirm('New challenger ' + player)) {
+      socket.emit('startgame', player);
+    }
+  });
+  
+  socket.on('newgame', function (color) {
+  
+    initChessBoard(color);
+    
+    document.getElementById('name_form').style.display   = 'none';
+    document.getElementById('player_list').style.display = 'none';
+    
+    window.emitMove = function (move) {
+      socket.emit('makeMove', move);
+    };
+    
+    socket.on('makeMove', function (move) {
+
+      var gameOver;
+
+      NOTATION_MAP[move.fromSquare].piece = {
+        'type'  : '',
+        'color' : '',
+        'prefix': ''
+      };
+
+      NOTATION_MAP[move.targetSquare].piece = move.movingPiece;
+      
+      if (chessEngine.turn() === move.color) {
+        chessEngine.move(move.move);
+      } else {
+        chessEngine.swap_color();
+        chessEngine.move(move.move);
+        chessEngine.swap_color();
+      }
+
+      drawChessBoard(NOTATION_MAP);
+
+      gameOver = isGameOver();
+
+      if (gameOver) {
+        if ((gameOver === 'Black' && PLAYER_COLOR === 'b') || (gameOver === 'White' && PLAYER_COLOR === 'w')) {
+          playSound(winGameSound);
+          alert('You won!');
+        } else {
+          playSound(lostGameSound);
+          alert('You lost.');
+        }
+      }
+
+    });
+  });
+  document.getElementById('player_list').addEventListener('click', function (e) {
+    var playerClicked = e.srcElement.innerHTML;
+    if (playerList.indexOf(playerClicked) !== -1) {
+      socket.emit('challengePlayer', playerClicked);
+    }
+  });
+  document.getElementById('send_player_name').addEventListener('click', function () {
+    myName = document.getElementById('player_name').value;
+    socket.emit('setPlayerName', myName);
+    document.getElementById('name_form').style.display = 'none';
+    document.getElementById('player_list').style.display = 'block';
+  });
+
   console.log('DOMContentLoaded');
-
-
 
 });
 },{"../core/chess":1,"../core/fullScreenDisplay":2}]},{},[3]);
