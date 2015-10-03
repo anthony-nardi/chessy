@@ -5,7 +5,7 @@ var io = require('socket.io')(server);
 
 server.listen(process.env.PORT || 80);
 
-app.use(express.static('./'));
+app.use(express.static(__dirname));
 
 var connections = [];
 
