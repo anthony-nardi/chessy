@@ -81,7 +81,7 @@ io.on('connection', function (socket) {
 
   socket.on('challengePlayer', function (playerToChallenge) {
     for (var i = 0; i < connections.length; i++) {
-      if (connections[i].playerName && connections[i].playerName === playerToChallenge) {
+      if (connections[i].playerName && connections[i].playerName === playerToChallenge && !connections[i].inGame) {
         connections[i].emit('challengeRequested', socket.playerName);
       }
     }

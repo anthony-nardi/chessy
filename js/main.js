@@ -97,7 +97,7 @@ window.addEventListener('DOMContentLoaded', function () {
     
     function tick () {
       var currentTime = Date.now(),
-          arc         = 2 * Math.PI * (((PIECE_COOLDOWN_MS - (currentTime - startTime)) / PIECE_COOLDOWN_MS));
+          arc         = (3 * Math.PI / 2) - (2 * Math.PI * (((PIECE_COOLDOWN_MS - (currentTime - startTime)) / PIECE_COOLDOWN_MS)));
         
       ctx.fillStyle = square.color;
       ctx.fillRect(col * squareWidth, row * squareHeight, squareWidth, squareHeight);
@@ -111,7 +111,7 @@ window.addEventListener('DOMContentLoaded', function () {
         ctx.beginPath();
         ctx.strokeStyle = '#4CFF4C';
         ctx.lineWidth = isMobile ? 4 : 10;
-        ctx.arc(col * squareWidth  + squareWidth / 2, row * squareHeight + squareHeight / 2, (isMobile ? 33/3 : 33), 0, arc, false);
+        ctx.arc(col * squareWidth  + squareWidth / 2, row * squareHeight + squareHeight / 2, (isMobile ? 33/3 : 33), 3 * Math.PI / 2, arc, true);
         ctx.stroke();
         ctx.closePath();
         ctx.strokeStyle = 'black';
