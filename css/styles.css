@@ -1,0 +1,42 @@
+#player_list div {
+  cursor: pointer;
+  font-size: 125%;
+}
+
+#player_list div:hover {
+  background: #e6e6e6;
+  border-color: #adadad
+}
+
+#name_form {
+	margin:0;
+	position:absolute;
+	width:100%;
+	height:100%;
+	left:0;
+	top:0;
+	background:white;
+	text-align:center;
+	display: flex;
+	 align-items: center;
+  justify-content: center;
+}
+
+#name_form .content {
+	margin-top: -15vh;
+}
+
+#player_list {
+	display:none;
+	position:absolute;
+	width:100%;
+	height:100%;
+	left:0;
+	top:0;
+	background:white;
+	text-align:center;
+}
+
+button {
+	margin-top:50px;
+}
