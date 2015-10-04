@@ -4,6 +4,9 @@ window.addEventListener('DOMContentLoaded', function () {
   var display = require('../core/fullScreenDisplay'),
       Chess   = require('../core/chess'),
       
+      canvas  = display.canvas,
+      ctx     = display.ctx,
+
       isMobile           = 'ontouchstart' in document.documentElement,
 
       mouseUpEvent       = isMobile ? 'touchend'   : 'mouseup',
@@ -68,6 +71,52 @@ window.addEventListener('DOMContentLoaded', function () {
 
   errorCooldownSound.volume = 0.5;
   capturedSound.volume      = 0.5;
+
+  function initChessBoard (color) {
+    
+    var squareColor,
+        currentSquare;
+
+    PLAYER_COLOR = color;
+
+    for (var colIndex = 0; colIndex < NUMBER_OF_COLS; colIndex++) {
+     
+      for (var rowIndex = 0; rowIndex < NUMBER_OF_ROWS; rowIndex++) {
+        
+        if (rowIndex % 2 === 0 && colIndex % 2 === 0) {
+          squareColor = WHITE_SQUARE_COLOR;
+        } else if (rowIndex % 2 === 0 && colIndex % 2 !== 0) {
+          squareColor = BLACK_SQUARE_COLOR;
+        } else if (rowIndex % 2 !== 0 && colIndex % 2 === 0) {
+          squareColor = BLACK_SQUARE_COLOR;
+        } else {
+          squareColor = WHITE_SQUARE_COLOR;
+        }
+
+        currentSquare = {
+          id      : COLUMN_MAP[colIndex] + ROW_MAP[rowIndex],
+          color   : squareColor,
+          colIndex: colIndex,
+          rowIndex: rowIndex
+        };
+
+        currentSquare.piece = getInitialChessPiece(currentSquare.id);
+
+        NOTATION_MAP[currentSquare.id] = currentSquare;
+
+      }
+
+    }
+
+    drawChessBoard(NOTATION_MAP);
+    
+    chessEngine = Chess.Chess();
+
+    window.chessEngine = chessEngine;
+
+    canvas.addEventListener(mouseMoveEvent, showMoves);
+
+  }
 
   function playSound (sound) {
     if (!isMobile) {
@@ -239,52 +288,6 @@ window.addEventListener('DOMContentLoaded', function () {
     }
     return piece;
   }
-  
-  function initChessBoard (color) {
-    
-    var squareColor,
-        currentSquare;
-
-    PLAYER_COLOR = color;
-
-    for (var colIndex = 0; colIndex < NUMBER_OF_COLS; colIndex++) {
-     
-      for (var rowIndex = 0; rowIndex < NUMBER_OF_ROWS; rowIndex++) {
-        if (rowIndex % 2 === 0 && colIndex % 2 === 0) {
-          squareColor = WHITE_SQUARE_COLOR;
-        } else if (rowIndex % 2 === 0 && colIndex % 2 !== 0) {
-          squareColor = BLACK_SQUARE_COLOR;
-        } else if (rowIndex % 2 !== 0 && colIndex % 2 === 0) {
-          squareColor = BLACK_SQUARE_COLOR;
-        } else {
-          squareColor = WHITE_SQUARE_COLOR;
-        }
-
-        currentSquare = {
-          id      : COLUMN_MAP[colIndex] + ROW_MAP[rowIndex],
-          color   : squareColor,
-          colIndex: colIndex,
-          rowIndex: rowIndex
-        };
-
-        currentSquare.piece = getInitialChessPiece(currentSquare.id);
-
-        NOTATION_MAP[currentSquare.id] = currentSquare;
-
-      }
-
-
-    }
-
-    drawChessBoard(NOTATION_MAP);
-    
-    chessEngine = Chess.Chess();
-
-    window.chessEngine = chessEngine;
-
-    display.canvas.addEventListener(mouseMoveEvent, showMoves);
-
-  }
 
   function showMovesWhileMoving (squareClicked) {
       
@@ -304,6 +307,12 @@ window.addEventListener('DOMContentLoaded', function () {
     for (var i = 0; i < moves.length; i++) {
       moves[i] = moves[i].replace('+', '');
       moves[i] = moves[i].replace('#', '');
+      if (moves[i] === 'O-O-O') {
+        moves[i] = COLUMN_MAP[squareClicked.colIndex - 2] + ROW_MAP[squareClicked.rowIndex];
+      }
+      if (moves[i] === 'O-O') {
+        moves[i] = COLUMN_MAP[squareClicked.colIndex + 2] + ROW_MAP[squareClicked.rowIndex]; 
+      }
       if (moves[i].length > 2) {
         currentMove = moves[i].slice(-2);
       } else {
@@ -341,8 +350,6 @@ window.addEventListener('DOMContentLoaded', function () {
 
     var clickX       = e.offsetX || e.changedTouches[0].clientX,
         clickY       = e.offsetY || e.changedTouches[0].clientY,
-        canvas       = display.canvas,
-        ctx          = display.ctx,
         squareWidth  = canvas.width / NUMBER_OF_COLS,
         squareHeight = canvas.height / NUMBER_OF_ROWS,
         rowClicked   = Math.floor(clickY / squareHeight),
@@ -369,6 +376,12 @@ window.addEventListener('DOMContentLoaded', function () {
       moves[i] = moves[i].replace('#', '');
       if (moves[i].indexOf('=') !== -1) {
         moves[i] = moves[i].split('=')[0];
+      }
+      if (moves[i] === 'O-O-O') {
+        moves[i] = COLUMN_MAP[colClicked - 2] + ROW_MAP[rowClicked];
+      }
+      if (moves[i] === 'O-O') {
+        moves[i] = COLUMN_MAP[colClicked + 2] + ROW_MAP[rowClicked]; 
       }
       if (moves[i].length > 2) {
         currentMove = moves[i].slice(-2);
@@ -398,7 +411,7 @@ window.addEventListener('DOMContentLoaded', function () {
       ctx.closePath();
     }
 
-}
+  }
 
   function drawChessBoard (board) {
 
@@ -428,7 +441,6 @@ window.addEventListener('DOMContentLoaded', function () {
 
   function getSquareFromClick (col, row) {
     return NOTATION_MAP[COLUMN_MAP[col] + ROW_MAP[row]];
-
   }
 
   function getMoves (square) {
@@ -453,6 +465,13 @@ window.addEventListener('DOMContentLoaded', function () {
     var rowId              = fromSquare.id.charAt(1);
     var colId              = fromSquare.id.charAt(0);
 
+    if (validMovesForPiece.indexOf('O-O-O') !== -1 && toSquare.colIndex === fromSquare.colIndex - 2) {
+      return 'O-O-O';
+    }
+
+    if (validMovesForPiece.indexOf('O-O') !== -1 && toSquare.colIndex === fromSquare.colIndex + 2) {
+      return 'O-O';
+    }
     //without row or col specifier
     if (validMovesForPiece.indexOf(piece.prefix + isCapture + toSquare.id) !== -1) {
       return piece.prefix + isCapture + toSquare.id;
@@ -468,6 +487,14 @@ window.addEventListener('DOMContentLoaded', function () {
 
     if (validMovesForPiece.indexOf(piece.prefix + isCapture + toSquare.id + pawnUpgradeToQueen) !== -1) {
       return piece.prefix + isCapture + toSquare.id + pawnUpgradeToQueen;
+    }   
+
+    if (validMovesForPiece.indexOf(piece.prefix + isCapture + toSquare.id + pawnUpgradeToQueen + '+') !== -1) {
+      return piece.prefix + isCapture + toSquare.id + pawnUpgradeToQueen + '+';
+    }   
+    
+    if (validMovesForPiece.indexOf(piece.prefix + isCapture + toSquare.id + pawnUpgradeToQueen + '#') !== -1) {
+      return piece.prefix + isCapture + toSquare.id + pawnUpgradeToQueen + '#';
     }   
 
     // with row specifier
@@ -486,7 +513,14 @@ window.addEventListener('DOMContentLoaded', function () {
     if (validMovesForPiece.indexOf(piece.prefix + rowId + isCapture + toSquare.id + pawnUpgradeToQueen) !== -1) {
       return piece.prefix + rowId + isCapture + toSquare.id + pawnUpgradeToQueen;
     }   
+    
+    if (validMovesForPiece.indexOf(piece.prefix + rowId + isCapture + toSquare.id + pawnUpgradeToQueen + '+') !== -1) {
+      return piece.prefix + rowId + isCapture + toSquare.id + pawnUpgradeToQueen + '+';
+    }   
 
+    if (validMovesForPiece.indexOf(piece.prefix + rowId + isCapture + toSquare.id + pawnUpgradeToQueen + '#') !== -1) {
+      return piece.prefix + rowId + isCapture + toSquare.id + pawnUpgradeToQueen + '#';
+    }   
     // with col specifier
     if (validMovesForPiece.indexOf(piece.prefix + colId + isCapture + toSquare.id) !== -1) {
       return piece.prefix + colId + isCapture + toSquare.id;
@@ -502,6 +536,14 @@ window.addEventListener('DOMContentLoaded', function () {
 
     if (validMovesForPiece.indexOf(piece.prefix + colId + isCapture + toSquare.id + pawnUpgradeToQueen) !== -1) {
       return piece.prefix + colId + isCapture + toSquare.id + pawnUpgradeToQueen;
+    }   
+
+    if (validMovesForPiece.indexOf(piece.prefix + colId + isCapture + toSquare.id + pawnUpgradeToQueen + '+') !== -1) {
+      return piece.prefix + colId + isCapture + toSquare.id + pawnUpgradeToQueen + '+';
+    }   
+
+    if (validMovesForPiece.indexOf(piece.prefix + colId + isCapture + toSquare.id + pawnUpgradeToQueen + '#') !== -1) {
+      return piece.prefix + colId + isCapture + toSquare.id + pawnUpgradeToQueen + '#';
     }   
   }
 
@@ -556,6 +598,45 @@ window.addEventListener('DOMContentLoaded', function () {
 
   }
 
+  function castlingMove (targetSquare, movingPiece, fromSquare, validMove) {
+
+    var oldRookSquare,
+        newRookSquare;
+
+    if (validMove === 'O-O-O') {
+      oldRookSquare = NOTATION_MAP['a' + ROW_MAP[fromSquare.rowIndex]]; 
+      newRookSquare = NOTATION_MAP['d' + ROW_MAP[fromSquare.rowIndex]];
+    }
+    
+    if (validMove === 'O-O') {
+      oldRookSquare = NOTATION_MAP['h' + ROW_MAP[fromSquare.rowIndex]];
+      newRookSquare = NOTATION_MAP['f' + ROW_MAP[fromSquare.rowIndex]];
+    }
+
+    targetSquare.piece  = movingPiece;
+    
+    newRookSquare.piece = oldRookSquare.piece;
+
+    oldRookSquare.piece = {
+      'type'  : '',
+      'color' : '',
+      'prefix': ''
+    };
+
+    chessEngine.move(validMove);
+    
+    beginPieceCooldownVisual(targetSquare);
+    beginPieceCooldownVisual(newRookSquare);
+
+    window.emitMove({
+      'move'        : validMove,
+      'fromSquare'  : fromSquare.id,
+      'targetSquare': targetSquare.id,
+      'movingPiece' : movingPiece
+    });
+
+  }
+
   function makeMove (targetSquare, movingPiece, fromSquare, validMove) {
 
     targetSquare.piece = movingPiece;
@@ -567,6 +648,11 @@ window.addEventListener('DOMContentLoaded', function () {
     if (isPawnMovingTwoSquares(targetSquare, movingPiece, fromSquare)) {
       movePawnTwoSquares(targetSquare, movingPiece, fromSquare);
       beginPieceCooldownVisual(targetSquare);
+      return;
+    }
+
+    if (validMove === 'O-O-O' || validMove === 'O-O') {
+      castlingMove(targetSquare, movingPiece, fromSquare, validMove);
       return;
     }
 
@@ -663,6 +749,7 @@ window.addEventListener('DOMContentLoaded', function () {
       gameOver = getWinner();
         
       if (gameOver) {
+        unattachEventListeners();
         if ((gameOver === 'Black' && PLAYER_COLOR === 'b') || (gameOver === 'White' && PLAYER_COLOR === 'w')) {
           playSound(winGameSound);
           alert('You won!');
@@ -677,35 +764,7 @@ window.addEventListener('DOMContentLoaded', function () {
     movePiece(click);
 
   }
-
-  window.addEventListener('resize', function () {
-    drawChessBoard(NOTATION_MAP);
-  });
-
-  display.canvas.addEventListener(mouseDownEvent, function (e) {
-
-    var clickX       = e.offsetX || e.changedTouches[0].clientX,
-        clickY       = e.offsetY || e.changedTouches[0].clientY,
-        canvas       = display.canvas,
-        squareWidth  = canvas.width / NUMBER_OF_COLS,
-        squareHeight = canvas.height / NUMBER_OF_ROWS,
-        rowClicked   = Math.floor(clickY / squareHeight),
-        colClicked   = Math.floor(clickX / squareWidth),
-        pieceClicked;
-
-    pieceClicked = getSquareFromClick(colClicked, rowClicked);
-
-    if (pieceClicked && pieceClicked.piece && pieceClicked.piece.type && pieceClicked.piece.color === PLAYER_COLOR && !pieceClicked.piece.cooldown) {
-      playSound(pickUpSound);
-      enableMoving(pieceClicked, e);
-    }
-
-    if (pieceClicked && pieceClicked.piece && pieceClicked.piece.type && pieceClicked.piece.color === PLAYER_COLOR && pieceClicked.piece.cooldown) {
-      playSound(errorCooldownSound);
-    }
-
-  });
-
+  
   function getWinner () {
 
     // Game allows kings to be captured, immediate loss.
@@ -737,6 +796,41 @@ window.addEventListener('DOMContentLoaded', function () {
       }
     }
 
+  }
+
+  window.addEventListener('resize', function () {
+    drawChessBoard(NOTATION_MAP);
+  });
+
+  function startMove (e) {
+
+    var clickX       = e.offsetX || e.changedTouches[0].clientX,
+        clickY       = e.offsetY || e.changedTouches[0].clientY,
+        canvas       = display.canvas,
+        squareWidth  = canvas.width / NUMBER_OF_COLS,
+        squareHeight = canvas.height / NUMBER_OF_ROWS,
+        rowClicked   = Math.floor(clickY / squareHeight),
+        colClicked   = Math.floor(clickX / squareWidth),
+        pieceClicked;
+
+    pieceClicked = getSquareFromClick(colClicked, rowClicked);
+
+    if (pieceClicked && pieceClicked.piece && pieceClicked.piece.type && pieceClicked.piece.color === PLAYER_COLOR && !pieceClicked.piece.cooldown) {
+      playSound(pickUpSound);
+      enableMoving(pieceClicked, e);
+    }
+
+    if (pieceClicked && pieceClicked.piece && pieceClicked.piece.type && pieceClicked.piece.color === PLAYER_COLOR && pieceClicked.piece.cooldown) {
+      playSound(errorCooldownSound);
+    }
+
+  }
+
+  canvas.addEventListener(mouseDownEvent, startMove);
+
+  function unattachEventListeners () {
+    canvas.removeEventListener(mouseDownEvent, startMove);
+    canvas.removeEventListener(mouseMoveEvent, showMoves);
   }
 
   // Socket stuff
@@ -786,8 +880,32 @@ window.addEventListener('DOMContentLoaded', function () {
     
     socket.on('makeMove', function (move) {
 
-      var gameOver;
+      var gameOver,
+          oldRookSquare,
+          newRookSquare;
+      
+      if (move.move === 'O-O-O'  || move.move === 'O-O') {
 
+        if (move.move === 'O-O-O') {
+          oldRookSquare = NOTATION_MAP['a' + move.targetSquare.charAt(1)]; 
+          newRookSquare = NOTATION_MAP['d' + move.targetSquare.charAt(1)];
+        }
+        
+        if (move.move === 'O-O') {
+          oldRookSquare = NOTATION_MAP['h' + move.targetSquare.charAt(1)];
+          newRookSquare = NOTATION_MAP['f' + move.targetSquare.charAt(1)];
+        }
+        
+        newRookSquare.piece = oldRookSquare.piece;
+
+        oldRookSquare.piece = {
+          'type'  : '',
+          'color' : '',
+          'prefix': ''
+        };
+
+      }
+      
       NOTATION_MAP[move.fromSquare].piece = {
         'type'  : '',
         'color' : '',
@@ -809,6 +927,7 @@ window.addEventListener('DOMContentLoaded', function () {
       gameOver = getWinner();
 
       if (gameOver) {
+        unattachEventListeners();
         if ((gameOver === 'Black' && PLAYER_COLOR === 'b') || (gameOver === 'White' && PLAYER_COLOR === 'w')) {
           playSound(winGameSound);
           alert('You won!');
