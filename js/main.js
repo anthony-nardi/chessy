@@ -660,7 +660,7 @@ window.addEventListener('DOMContentLoaded', function () {
       display.canvas.removeEventListener(mouseMoveEvent, movePiece);
       display.canvas.removeEventListener(mouseUpEvent, detachMouseMove);
       
-      gameOver = isGameOver();
+      gameOver = getWinner();
         
       if (gameOver) {
         if ((gameOver === 'Black' && PLAYER_COLOR === 'b') || (gameOver === 'White' && PLAYER_COLOR === 'w')) {
@@ -706,18 +706,37 @@ window.addEventListener('DOMContentLoaded', function () {
 
   });
 
-  function isGameOver () {
+  function getWinner () {
+
+    // Game allows kings to be captured, immediate loss.
+    var kingSquares = [];
+
     if (chessEngine.game_over() || chessEngine.game_over()) {
-      var colorWin = chessEngine.moves().length === 0 && chessEngine.turn() === 'b' ? 'White': 'Black';
-      return colorWin;
+      return chessEngine.moves().length === 0 && chessEngine.turn() === 'b' ? 'White': 'Black';
     }
 
     chessEngine.swap_color();
     
     if (chessEngine.game_over() || chessEngine.game_over()) {
-      var colorWin = window.chessEngine.moves().length === 0 && window.chessEngine.turn() === 'b' ? 'White': 'Black';
-      return colorWin;
+      return window.chessEngine.moves().length === 0 && window.chessEngine.turn() === 'b' ? 'White': 'Black';
     }
+
+    for (var square in NOTATION_MAP) {
+      if (NOTATION_MAP.hasOwnProperty(square)) {
+        if (NOTATION_MAP[square].piece && NOTATION_MAP[square].piece.prefix === 'K') {
+          kingSquares.push(NOTATION_MAP[square]);
+        }
+      }
+    }
+
+    if (kingSquares.length < 2) {
+      if (kingSquares[0].piece.type === BLACK_KING) {
+        return 'Black';
+      } else {
+        return 'White';
+      }
+    }
+
   }
 
   // Socket stuff
@@ -726,12 +745,17 @@ window.addEventListener('DOMContentLoaded', function () {
       playerList;
 
   function updatePlayerList (players) {
-    playerList = players;
-    var listElement = document.getElementById('player_list');
+    
+    var listElement = document.getElementById('player_list'),
+        currentPlayerElement;
+    
     listElement.innerHTML = '<h2>Challenge Player</h2>';
+    
+    playerList = players;
+    
     for (var i = 0; i < players.length; i++) {
       if (myName !== players[i]) {
-        var currentPlayerElement = document.createElement('div');
+        currentPlayerElement = document.createElement('div');
         currentPlayerElement.setAttribute('class', 'list-group-item');
         currentPlayerElement.innerHTML = players[i];
         listElement.appendChild(currentPlayerElement);
@@ -744,7 +768,6 @@ window.addEventListener('DOMContentLoaded', function () {
   });
   
   socket.on('challengeRequested', function (player) {
-    console.log('New Challenge From ' + player);
     if (confirm('New challenger ' + player)) {
       socket.emit('startgame', player);
     }
@@ -783,7 +806,7 @@ window.addEventListener('DOMContentLoaded', function () {
 
       drawChessBoard(NOTATION_MAP);
 
-      gameOver = isGameOver();
+      gameOver = getWinner();
 
       if (gameOver) {
         if ((gameOver === 'Black' && PLAYER_COLOR === 'b') || (gameOver === 'White' && PLAYER_COLOR === 'w')) {
@@ -797,19 +820,21 @@ window.addEventListener('DOMContentLoaded', function () {
 
     });
   });
+
+  // Get players name from player list
   document.getElementById('player_list').addEventListener('click', function (e) {
     var playerClicked = e.srcElement.innerHTML;
     if (playerList.indexOf(playerClicked) !== -1) {
       socket.emit('challengePlayer', playerClicked);
     }
   });
+
+  // Send server the players name
   document.getElementById('send_player_name').addEventListener('click', function () {
     myName = document.getElementById('player_name').value;
     socket.emit('setPlayerName', myName);
-    document.getElementById('name_form').style.display = 'none';
+    document.getElementById('name_form').style.display   = 'none';
     document.getElementById('player_list').style.display = 'block';
   });
-
-  console.log('DOMContentLoaded');
 
 });
