@@ -62,6 +62,7 @@ window.addEventListener('DOMContentLoaded', function () {
 
       chessEngine,
 
+      notifySound        = new Audio('audio/notify.wav'),
       pickUpSound        = new Audio('audio/pick_up.wav'),
       placeSound         = new Audio('audio/place.wav'),
       capturedSound      = new Audio('audio/captured.wav'),
@@ -862,6 +863,7 @@ window.addEventListener('DOMContentLoaded', function () {
   });
   
   socket.on('challengeRequested', function (player) {
+    playSound(notifySound);
     if (confirm('New challenger ' + player)) {
       socket.emit('startgame', player);
     }
