@@ -15,8 +15,6 @@ module.exports = (function () {
       canvas.height = window.innerWidth;
     }
     
-    console.log('New board size: ' + canvas.width + ' x ' + canvas.height);
-    
   }
 
 

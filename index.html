@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Multiplayer Real Time Chess</title>
+    <title>Cooldown-Based Chess</title>
 
     <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0' name='viewport' />
 
@@ -14,12 +14,27 @@
 
   </head> 
   <body>
+    <div id="dimmer" style="display:none;"></div>
+    <div id="inGameMenu" style="display:none;">
+      <div class="content col-md-6 col-sm-6 col-lg-6 col-xs-10">
+        <button id="closeButton" class="btn btn-lg btn-default"><span style="padding-top:10px;" class="glyphicon glyphicon-remove-sign"></span></button>
+        <button class="btn btn-lg btn-default btn-block" id="offerDraw">Offer Draw</button>
+      </div>
+    </div>
     <div id="name_form" class="row">
       <div class="col-md-6 col-sm-6 col-lg-6 col-xs-10 content">
         <h2>Enter your name</h2>
         <br><br>
         <input class="form-control input-lg" id="player_name" type="text"/>
         <button class="btn btn-lg btn-success btn-block" id="send_player_name">Start</button>
+        <div id="howtoplaydesktop">
+          <h2 style="margin-top:40px;">How to Play</h2>
+          
+            <div>There are no turns.</div>
+            <div>Once a piece is moved, you must wait 10 seconds before you can move it again.</div>
+            <div>Press spacebar while in game to bring up the menu.  At the moment, all you can do is request a draw.</div>
+          
+        </div>
       </div>
     </div>
     <div id="player_list">

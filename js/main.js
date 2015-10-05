@@ -7,6 +7,8 @@ window.addEventListener('DOMContentLoaded', function () {
       canvas  = display.canvas,
       ctx     = display.ctx,
 
+      isInGameMenuShown  = false,
+      gameStarted        = false,
       isMobile           = 'ontouchstart' in document.documentElement,
 
       mouseUpEvent       = isMobile ? 'touchend'   : 'mouseup',
@@ -79,6 +81,7 @@ window.addEventListener('DOMContentLoaded', function () {
         currentSquare;
 
     PLAYER_COLOR = color;
+    gameStarted  = true;
 
     for (var colIndex = 0; colIndex < NUMBER_OF_COLS; colIndex++) {
      
@@ -828,16 +831,44 @@ window.addEventListener('DOMContentLoaded', function () {
   }
 
   canvas.addEventListener(mouseDownEvent, startMove);
+  window.addEventListener('keydown', toggleInGameMenuIfSpacebarPressed);
+  document.getElementById('closeButton').addEventListener('click', toggleInGameMenu);
 
   function unattachEventListeners () {
     canvas.removeEventListener(mouseDownEvent, startMove);
     canvas.removeEventListener(mouseMoveEvent, showMoves);
+    window.removeEventListener('keydown', toggleInGameMenuIfSpacebarPressed);
+  }
+
+  function toggleInGameMenuIfSpacebarPressed (e) {
+    if (e.keyCode === 32 && gameStarted) {
+      toggleInGameMenu();
+    }
+  }
+
+  function toggleInGameMenu () {
+    
+    var inGameMenuElement = document.getElementById('inGameMenu'),
+        dimmerElement     = document.getElementById('dimmer');
+
+    isInGameMenuShown = !isInGameMenuShown;
+    
+    if (isInGameMenuShown) {
+      inGameMenuElement.style.display = 'flex';
+      dimmerElement.style.display     = 'block';
+    } else {
+      inGameMenuElement.style.display = 'none';
+      dimmerElement.style.display     = 'none';
+    }
+  
   }
 
   // Socket stuff
   var socket = io('/'),
       myName,
       playerList;
+
+  document.getElementById('offerDraw').addEventListener('click', offerDraw);
 
   function updatePlayerList (players) {
     
@@ -856,6 +887,22 @@ window.addEventListener('DOMContentLoaded', function () {
         listElement.appendChild(currentPlayerElement);
       }
     }
+  }
+
+  function offerDraw () {
+    socket.emit('drawRequest');
+  }
+
+  function drawAccepted () {
+    unattachEventListeners();
+    if (isInGameMenuShown) {
+      toggleInGameMenu();
+    }
+    alert('Draw');
+  }
+
+  function drawRejected () {
+    alert('Player rejected the draw.  Good luck.  You can request draw again.');
   }
 
   socket.on('players', function (players) {
@@ -940,6 +987,18 @@ window.addEventListener('DOMContentLoaded', function () {
       }
 
     });
+
+    socket.on('drawRequest', function () {
+      if (confirm('Player has requested a draw. Accept?')) {
+        socket.emit('drawAccepted');
+        drawAccepted();
+      } else {
+        socket.emit('drawRejected');
+      }
+    });
+
+    socket.on('drawRejected', drawRejected);
+    socket.on('drawAccepted', drawAccepted);
   });
 
   // Get players name from player list

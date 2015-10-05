@@ -65,6 +65,27 @@ io.on('connection', function (socket) {
     playerOne.emit('newgame', PLAYER_ONE_COLOR);
     playerTwo.emit('newgame', PLAYER_TWO_COLOR);
 
+    playerOne.on('drawRequest', function () {
+      playerTwo.emit('drawRequest');
+    });
+    playerTwo.on('drawRequest', function () {
+      playerOne.emit('drawRequest');
+    });
+
+    playerOne.on('drawAccepted', function () {
+      playerTwo.emit('drawAccepted');
+    });
+    playerTwo.on('drawAccepted', function () {
+      playerOne.emit('drawAccepted');
+    });
+
+    playerOne.on('drawRejected', function () {
+      playerTwo.emit('drawRejected');
+    });
+    playerTwo.on('drawRejected', function () {
+      playerOne.emit('drawRejected');
+    });    
+
     playerOne.on('makeMove', function (move) {
       console.log('MOVE MADE BY PLAYER ' + playerOne.playerName);
       move.color = PLAYER_ONE_COLOR;
