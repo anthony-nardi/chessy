@@ -56,7 +56,14 @@ io.on('connection', function (socket) {
         playerTwo = connections[i];
       }
     }
+      
+    if (playerOne.inGame || playerTwo.inGame) {
+      return;
+    }
     
+    playerOne.inGame = true;
+    playerTwo.inGame = true;
+
     io.emit('players', getAllPlayers());
 
     playerOne.emit('newgame', PLAYER_ONE_COLOR);
@@ -98,17 +105,18 @@ io.on('connection', function (socket) {
   });
 
   socket.on('challengePlayer', function (playerToChallenge) {
+
     for (var i = 0; i < connections.length; i++) {
+    
       if (connections[i].playerName && connections[i].playerName === playerToChallenge && !connections[i].inGame && connections[i].challengedBy.indexOf(socket.playerName) === -1) {
       
         connections[i].challengedBy.push(socket.playerName);
     
-        socket.inGame         = true;
-        connections[i].inGame = true;
-    
         connections[i].emit('challengeRequested', socket.playerName);
       }
+    
     }
+  
   });
 
 });

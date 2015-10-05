@@ -910,8 +910,12 @@ window.addEventListener('DOMContentLoaded', function () {
   });
   
   socket.on('challengeRequested', function (player) {
+    if (gameStarted) {
+      return;
+    }
     playSound(notifySound);
     if (confirm('New challenger ' + player)) {
+      gameStarted = true;
       socket.emit('startgame', player);
     }
   });
