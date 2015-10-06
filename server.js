@@ -32,6 +32,7 @@ io.on('connection', function (socket) {
   socket.on('disconnect', function () {
     console.log('User disconnected.');
     connections.splice(connections.indexOf(socket), 1);
+    io.emit('players', getAllPlayers());
   });
   
   socket.on('setPlayerName', function (data) {
