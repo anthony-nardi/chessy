@@ -832,12 +832,21 @@ window.addEventListener('DOMContentLoaded', function () {
 
   canvas.addEventListener(mouseDownEvent, startMove);
   window.addEventListener('keydown', toggleInGameMenuIfSpacebarPressed);
-  document.getElementById('closeButton').addEventListener('click', toggleInGameMenu);
+  document.getElementById('closeButton').addEventListener(mouseDownEvent, toggleInGameMenu);
+  
+  if (isMobile) {
+    document.getElementById('howtoplaydesktop').style.display = 'none';
+    document.getElementById('howtoplaymobile').style.display  = 'block';
+    canvas.addEventListener(mouseDownEvent, startLongPress);
+  }
 
   function unattachEventListeners () {
     canvas.removeEventListener(mouseDownEvent, startMove);
     canvas.removeEventListener(mouseMoveEvent, showMoves);
     window.removeEventListener('keydown', toggleInGameMenuIfSpacebarPressed);
+    if (isMobile) {
+      canvas.removeEventListener(mouseDownEvent, startLongPress);
+    }
   }
 
   function toggleInGameMenuIfSpacebarPressed (e) {
@@ -861,6 +870,23 @@ window.addEventListener('DOMContentLoaded', function () {
       dimmerElement.style.display     = 'none';
     }
   
+  }
+
+  function startLongPress () {
+
+    var TIMEOUT = 5000;
+    
+    function cancelLongPress () {
+      canvas.removeEventListener(mouseMoveEvent, cancelLongPress);
+      canvas.removeEventListener(mouseUpEvent,   cancelLongPress);
+      clearTimeout(showMenuOnTimeoutId);
+    }
+    
+    canvas.addEventListener(mouseMoveEvent, cancelLongPress);
+    canvas.addEventListener(mouseUpEvent,   cancelLongPress);
+  
+    var showMenuOnTimeoutId = setTimeout(toggleInGameMenu, TIMEOUT);
+
   }
 
   // Socket stuff

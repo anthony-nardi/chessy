@@ -88,8 +88,6 @@ button {
   width: 92px;
 }
 
-#howtoplaydesktop {
-	text-decoration: none;
-	list-style: none;
+#howtoplaydesktop, #howtoplaymobile {
 	font-size: 120%;
 }
